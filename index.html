@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Website</title>
+</head>
+<body>
+
+    <h1>Weather Monitoring Website</h1>
+
+    <h2>Check Your City Weather</h2>
+
+    <input type="text" id="city"
+           placeholder="Enter City Name">
+
+    <button onclick="getWeather()">
+        Check Weather
+    </button>
+
+    <h2 id="result">Weather Details</h2>
+
+    <script>
+    async function getWeather() {
+
+        let city = document.getElementById("city").value;
+
+        if (city === "") {
+            alert("Please enter city name");
+            return;
+        }
+
+        try {
+            let locationResponse = await fetch(
+                `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`
+            );
+
+            let locationData = await locationResponse.json();
+
+            if (!locationData.results) {
+                document.getElementById("result").innerHTML =
+                    "City not found";
+                return;
+            }
+
+            let latitude = locationData.results[0].latitude;
+            let longitude = locationData.results[0].longitude;
+
+            let weatherResponse = await fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m`
+            );
+
+            let weatherData = await weatherResponse.json();
+
+            let weather = weatherData.current;
+
+            document.getElementById("result").innerHTML =
+                "City: " + city +
+                "<br>Temperature: " + weather.temperature_2m + " °C" +
+                "<br>Humidity: " + weather.relative_humidity_2m + " %" +
+                "<br>Wind Speed: " + weather.wind_speed_10m + " km/h" +
+                "<br>Feels Like: " + weather.apparent_temperature + " °C" +
+                "<br>Precipitation: " + weather.precipitation + " mm";
+
+        } catch (error) {
+            document.getElementById("result").innerHTML =
+                "Unable to get weather data";
+        }
+    }
+    </script>
+
+</body>
+</html>
